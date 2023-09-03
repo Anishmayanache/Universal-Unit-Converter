@@ -1,0 +1,128 @@
+import tkinter as tk
+from tkinter import ttk
+from decimal import Decimal, ROUND_HALF_UP
+
+class UnitConverter:
+    def __init__(self):
+        self.conversion_rates = {
+            'length': {
+                'm': 1.0,
+                'cm': 0.01,
+                'mm': 0.001,
+                'km': 1000.0,
+                'ft': 0.3048,
+                'in': 0.0254
+            },
+            'time': {
+                's': 1.0,
+                'min': 60.0,
+                'hr': 3600.0,
+                'day': 86400.0
+            },
+            'currency': {
+                'usd': 1.0,
+                'eur': 1.17,
+                'gbp': 1.39,
+                'jpy': 0.0090
+            }
+        }
+
+    def convert(self, value, from_unit, to_unit, category):
+        if category in self.conversion_rates:
+            conversion_factor = self.conversion_rates[category].get(from_unit)
+            conversion_result = value * conversion_factor
+            target_conversion_factor = self.conversion_rates[category].get(to_unit)
+            converted_value = conversion_result / target_conversion_factor
+            return converted_value
+        else:
+            return None
+
+    def get_units(self, category):
+        if category in self.conversion_rates:
+            return list(self.conversion_rates[category].keys())
+        else:
+            return []
+
+def convert_button_click():
+    value = float(value_entry.get())
+    from_unit = from_unit_combo.get()
+    to_unit = to_unit_combo.get()
+    category = category_combo.get()
+
+    converted_value = converter.convert(value, from_unit, to_unit, category)
+    if converted_value is not None:
+        rounded_value = Decimal(converted_value).quantize(Decimal('0.0000'), rounding=ROUND_HALF_UP)
+        result_label['text'] = f"{value} {from_unit} = {rounded_value} {to_unit}"
+    else:
+        result_label['text'] = "Invalid category or units."
+
+def clear_button_click():
+    value_entry.delete(0, tk.END)
+    from_unit_combo.delete(0, tk.END)
+    to_unit_combo.delete(0, tk.END)
+    result_label['text'] = ""
+    rounded_result_label['text'] = ""
+
+def category_changed(*args):
+    category = category_combo.get()
+    units = converter.get_units(category)
+    from_unit_combo['values'] = units
+    to_unit_combo['values'] = units
+
+converter = UnitConverter()
+
+# Create the main window
+window = tk.Tk()
+window.title("Universal Unit Converter")
+window.configure(bg='#FFFFFF')
+window.resizable(True, True)
+
+# Set custom cursor
+window.config(cursor='arrow')
+
+# Set custom styles
+style = ttk.Style()
+style.configure('TLabel', font=('Arial', 12), background='#FFFFFF', foreground='#0000FF')
+style.configure('TButton', font=('Arial', 12), background='#0000FF', foreground='#FFFFFF')
+
+# Create the input widgets
+value_label = ttk.Label(window, text="Value:")
+value_label.grid(row=0, column=0, padx=5, pady=5)
+value_entry = ttk.Entry(window, font=('Arial', 12))
+value_entry.grid(row=0, column=1, padx=5, pady=5)
+
+from_unit_label = ttk.Label(window, text="From Unit:")
+from_unit_label.grid(row=1, column=0, padx=5, pady=5)
+from_unit_combo = ttk.Combobox(window, font=('Arial', 12), background='#FFFFFF')
+from_unit_combo.grid(row=1, column=1, padx=5, pady=5)
+
+to_unit_label = ttk.Label(window, text="To Unit:")
+to_unit_label.grid(row=2, column=0, padx=5, pady=5)
+to_unit_combo = ttk.Combobox(window, font=('Arial', 12), background='#FFFFFF')
+to_unit_combo.grid(row=2, column=1, padx=5, pady=5)
+
+category_label = ttk.Label(window, text="Category:")
+category_label.grid(row=3, column=0, padx=5, pady=5)
+category_combo = ttk.Combobox(window, values=['length', 'time', 'currency'], font=('Arial', 12), background='#FFFFFF')
+category_combo.grid(row=3, column=1, padx=5, pady=5)
+category_combo.current(0)
+
+# Create the result labels
+result_label = ttk.Label(window, text="", font=('Arial', 12), background='#FFFFFF')
+result_label.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
+
+rounded_result_label = ttk.Label(window, text="", font=('Arial', 12), background='#FFFFFF')
+rounded_result_label.grid(row=4, column=2, padx=5, pady=5)
+
+# Create the buttons
+clear_button = ttk.Button(window, text="Clear", command=clear_button_click, cursor="hand2")
+clear_button.grid(row=5, column=0, padx=5, pady=5)
+
+convert_button = ttk.Button(window, text="Convert", command=convert_button_click, cursor="hand2")
+convert_button.grid(row=5, column=1, padx=5, pady=5)
+
+# Bind the category change event
+category_combo.bind("<<ComboboxSelected>>", category_changed)
+
+# Start the main event loop
+window.mainloop()
